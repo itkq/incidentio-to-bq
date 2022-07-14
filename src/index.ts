@@ -23,9 +23,6 @@ const datasetId = "incidentio";
 const incidentTableId = "incidents";
 
 (async () => {
-  const incidentIoClient = new IncidentIoClient(incidentioApiKey);
-  const incidents = await incidentIoClient.ListAllIncidents();
-
   const bigqueryClient = new BigQuery({ projectId: googleProjectId });
   const [ datasetExists ] = await bigqueryClient
     .dataset(datasetId, { location: datasetLocation })
@@ -49,6 +46,9 @@ const incidentTableId = "incidents";
       .delete();
     console.log(`Table ${googleProjectId}:${datasetId}:${incidentTableId} (location: ${datasetLocation}) deleted`);
   }
+
+  const incidentIoClient = new IncidentIoClient(incidentioApiKey);
+  const incidents = await incidentIoClient.ListAllIncidents();
 
   const tmpFile = fileSync();
   writeSync(tmpFile.fd, incidents.map(i => JSON.stringify(i)).join("\n"));

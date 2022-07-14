@@ -33,18 +33,21 @@ export class IncidentIoClient {
     let allIncidents: Incident[] = [];
 
     let after: string | undefined = undefined;
-    let done = false;
-    while (!done) {
+    let totalRecordCount: number | undefined = undefined;
+    while (true) {
       const resp: ListIncidentsResponse = await this.listIncidents({ after }); // XXX: why type inference doesn't work?
-      allIncidents = allIncidents.concat(resp.incidents);
-
-      after = resp.pagination_meta.after;
-      if (after === undefined) {
-        done = true;
+      if (totalRecordCount === undefined) {
+        totalRecordCount = resp.pagination_meta.total_record_count;
       }
 
+      allIncidents = allIncidents.concat(resp.incidents);
+      if (allIncidents.length >= totalRecordCount) {
+        break;
+      }
+      after = allIncidents[allIncidents.length - 1].id;
+
       // XXX: Sleep to avoid throttling
-      this.sleep(3000);
+      await this.sleep(2000);
     }
 
     return allIncidents;
