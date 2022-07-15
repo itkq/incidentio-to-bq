@@ -25,8 +25,10 @@ interface Incident {
 export class IncidentIoClient {
   readonly apiEndpoint = "https://api.incident.io";
   private apiKey: string;
-  constructor(apiKey: string) {
+  private debug: boolean;
+  constructor(apiKey: string, debug = false) {
     this.apiKey = apiKey;
+    this.debug = debug;
   }
 
   async ListAllIncidents(): Promise<Incident[]> {
@@ -36,6 +38,9 @@ export class IncidentIoClient {
     let totalRecordCount: number | undefined = undefined;
     while (true) {
       const resp: ListIncidentsResponse = await this.listIncidents({ after }); // XXX: why type inference doesn't work?
+      if (this.debug) {
+        console.debug(resp);
+      }
       if (totalRecordCount === undefined) {
         totalRecordCount = resp.pagination_meta.total_record_count;
       }
@@ -72,6 +77,11 @@ export class IncidentIoClient {
       },
       method: "get",
     });
+    if (resp.status !== 200) {
+      const text = await resp.text();
+      console.error(`error body => ${text}`);
+      throw new Error(`Unexpected status code: ${resp.status}`);
+    }
     const json = await resp.json();
     return (json as unknown as ListIncidentsResponse);
   }

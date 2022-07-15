@@ -19,6 +19,7 @@ const loadEnvVar = (name: string, defaultValue?: string): string => {
 const incidentioApiKey = loadEnvVar("INCIDENTIO_API_KEY");
 const googleProjectId = loadEnvVar("GOOGLE_PROJECT_ID");
 const datasetLocation = loadEnvVar("DATASET_LOCATION", "asia-northeast1");
+const debug = loadEnvVar("DEBUG", "0") === "1";
 const datasetId = "incidentio";
 const incidentTableId = "incidents";
 
@@ -47,7 +48,7 @@ const incidentTableId = "incidents";
     console.log(`Table ${googleProjectId}:${datasetId}:${incidentTableId} (location: ${datasetLocation}) deleted`);
   }
 
-  const incidentIoClient = new IncidentIoClient(incidentioApiKey);
+  const incidentIoClient = new IncidentIoClient(incidentioApiKey, debug);
   const incidents = await incidentIoClient.ListAllIncidents();
 
   const tmpFile = fileSync();
