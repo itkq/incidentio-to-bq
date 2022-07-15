@@ -1,0 +1,64 @@
+name: Build and push docker image
+
+on:
+  push:
+    branches:
+    - 'main'
+    tags:
+    - '*'
+  pull_request:
+    branches:
+    - 'main'
+    types: [opened, synchronize]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - run: npm i
+    - run: npm run build
+
+  build-push:
+    if: startsWith( github.ref, 'refs/tags/' )
+    needs:
+    - build-test
+    runs-on: ubuntu-latest
+    env:
+      CONTAINER_IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/incidentio-to-bq
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v3
+      with:
+        images: ${{ env.CONTAINER_IMAGE_REPOSITORY }}
+        tags: |
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=ref,event=tag
+          type=schedule,pattern={{date 'YYYYMMDD'}}
+          type=sha
+    - name: Build and Push
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
