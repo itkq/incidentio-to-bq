@@ -1,0 +1,14 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  entrypoint: 'bash'
+  args:
+  - "-c"
+  - "docker run --network=cloudbuild -e INCIDENTIO_API_KEY=$$INCIDENTIO_API_KEY -e GOOGLE_PROJECT_ID={YOUR_PROJECT} ghcr.io/itkq/incidentio-to-bq:latest"
+  secretEnv:
+  - 'INCIDENTIO_API_KEY'
+availableSecrets:
+  secretManager:
+  - versionName: projects/{PROJECT_NUMBER}/secrets/incidentio_to_bq_INCIDENTIO_API_KEY/versions/latest
+    env: 'INCIDENTIO_API_KEY'
+options:
+  logging: CLOUD_LOGGING_ONLY
