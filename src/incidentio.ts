@@ -60,7 +60,7 @@ export class IncidentIoClient {
 
   // https://api-docs.incident.io/#operation/Incidents_List
   async listIncidents(input: ListIncidentsRequest): Promise<ListIncidentsResponse> {
-    var url = new URL(this.apiEndpoint + "/v1/incidents");
+    var url = new URL(this.apiEndpoint + "/v2/incidents");
     url.searchParams.append("page_size", (input.pageSize || 25).toString());
     if (input.after !== undefined) {
       url.searchParams.append("after", input.after);
